@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ひとり社長の参謀室</title>
+<meta name="description" content="AIが「やるべきか、やめるべきか」を一緒に考える">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23225AD3'/><text y='.9em' font-size='72' x='50%' text-anchor='middle' font-family='serif' fill='white'>参</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #225AD3;
+    --blue-light: #0179E8;
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --dark: #0D1117;
+    --dark2: #161B27;
+    --dark3: #1E2535;
+    --dark4: #252D40;
+    --text: #E8EAF0;
+    --text-dim: #8892A4;
+    --text-muted: #556070;
+    --border: rgba(255,255,255,0.06);
+    --border-gold: rgba(201,168,76,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(34,90,211,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(1,121,232,0.05) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.01) 80px, rgba(255,255,255,0.01) 81px),
+      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.01) 80px, rgba(255,255,255,0.01) 81px);
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 48px 0 32px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 24px auto 0;
+  }
+  .header-icon {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 20px rgba(201,168,76,0.4));
+  }
+  .header h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  /* セクション */
+  .section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 28px;
+    line-height: 1.8;
+  }
+
+  /* 参謀カード */
+  .sanbo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 600px) {
+    .sanbo-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 400px) {
+    .sanbo-grid { grid-template-columns: 1fr; }
+  }
+
+  .sanbo-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .sanbo-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .sanbo-card:hover {
+    border-color: rgba(201,168,76,0.3);
+    background: var(--dark3);
+    transform: translateY(-2px);
+  }
+  .sanbo-card:hover::before { opacity: 1; }
+  .sanbo-card.selected {
+    border-color: var(--gold);
+    background: var(--dark3);
+  }
+  .sanbo-card.selected::before { opacity: 1; }
+
+  .sanbo-emoji { font-size: 28px; margin-bottom: 10px; display: block; }
+  .sanbo-name {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    color: var(--gold);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .sanbo-role {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .sanbo-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .sanbo-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(34,90,211,0.15);
+    color: var(--blue-light);
+    border: 1px solid rgba(34,90,211,0.2);
+  }
+
+  /* モードカード */
+  .mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .mode-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .mode-card:hover, .mode-card.selected {
+    border-color: rgba(34,90,211,0.5);
+    background: var(--dark3);
+  }
+  .mode-card.selected { border-color: var(--blue); }
+  .mode-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .mode-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .mode-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .mode-examples {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* テキストエリア */
+  .input-block {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .input-block label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 12px;
+  }
+  textarea {
+    width: 100%;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 14px 16px;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  textarea:focus { border-color: rgba(34,90,211,0.5); }
+  textarea::placeholder { color: var(--text-muted); }
+
+  /* 候補ボタン */
+  .suggest-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .suggest-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--dark3);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .suggest-btn:hover {
+    border-color: var(--blue);
+    color: var(--text);
+    background: rgba(34,90,211,0.1);
+  }
+
+  /* 参謀の返答エリア */
+  .sanbo-response {
+    background: var(--dark2);
+    border: 1px solid var(--border-gold);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .sanbo-response::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .sanbo-speaker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sanbo-speaker-icon { font-size: 24px; }
+  .sanbo-speaker-name {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .sanbo-speaker-role {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .sanbo-text {
+    font-size: 15px;
+    line-height: 2;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .sanbo-text.typing::after {
+    content: '▍';
+    animation: blink 0.8s infinite;
+    color: var(--gold);
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* 結論エリア */
+  .conclusion-box {
+    background: linear-gradient(135deg, rgba(34,90,211,0.1), rgba(201,168,76,0.05));
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .conclusion-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--gold));
+    border-radius: 12px 12px 0 0;
+  }
+  .conclusion-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .conclusion-text {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    line-height: 2;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* ボタン */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--blue-light));
+    color: white;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(34,90,211,0.25);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(34,90,211,0.35);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--dark);
+    width: 100%;
+    font-weight: 600;
+  }
+  .btn-gold:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(201,168,76,0.3);
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .btn-ghost:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+  .btn-copy {
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+    width: 100%;
+  }
+  .btn-copy:hover { border-color: var(--gold); color: var(--gold); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  /* プログレス */
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .progress-step {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--dark2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .progress-step.done {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+  .progress-step.active {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .progress-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .progress-line.done { background: var(--blue); }
+
+  /* ローディング */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+  .loading-dots {
+    display: inline-flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .loading-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: dot 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+
+
+  /* 選択済み表示 */
+  .selected-summary {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .selected-item {
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .selected-item span { color: var(--gold); }
+
+  /* エラー */
+  .error-box {
+    background: rgba(220,53,69,0.08);
+    border: 1px solid rgba(220,53,69,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #f87171;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .mt-12 { margin-top: 12px; }
+  .mt-20 { margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <span class="header-icon">🏯</span>
+    <h1>ひとり社長の参謀室</h1>
+    <p class="subtitle">AIが「やるべきか、やめるべきか」を一緒に考える</p>
+  </div>
+
+  <!-- プログレス -->
+  <div class="progress" id="progressBar">
+    <div class="progress-step active" id="ps1">1</div>
+    <div class="progress-line" id="pl1"></div>
+    <div class="progress-step" id="ps2">2</div>
+    <div class="progress-line" id="pl2"></div>
+    <div class="progress-step" id="ps3">3</div>
+    <div class="progress-line" id="pl3"></div>
+    <div class="progress-step" id="ps4">4</div>
+    <div class="progress-line" id="pl4"></div>
+    <div class="progress-step" id="ps5">5</div>
+  </div>
+
+  <!-- STEP1: 参謀選択 -->
+  <div class="section active" id="step1">
+    <div class="section-label">STEP 01 — 参謀を選ぶ</div>
+    <h2 class="section-title">今日の参謀を選んでください</h2>
+    <p class="section-desc">テーマや気分に合わせて、最適な参謀を1名選んでください。<br>同じ課題でも、参謀によって視点が大きく変わります。</p>
+    <div class="sanbo-grid">
+      <div class="sanbo-card" onclick="selectSanbo(this, '剛')" data-name="剛" data-emoji="⚔️" data-role="鬼参謀" data-prompt="あなたは「鬼参謀・剛」。厳しく現実的な目線でリスクと失敗パターンを先に指摘し、覚悟を問いながら本質的なアドバイスをする参謀。歯に衣着せない物言いで、でも最後は社長の背中を押す。">
+        <span class="sanbo-emoji">⚔️</span>
+        <div class="sanbo-name">鬼参謀・剛</div>
+        <div class="sanbo-role">厳しい現実派</div>
+        <div class="sanbo-desc">リスクと失敗パターンを真っ先に言う。甘い見通しには容赦なく切り込む。</div>
+        <span class="sanbo-tag"># 覚悟を問う</span>
+      </div>
+      <div class="sanbo-card" onclick="selectSanbo(this, '葵')" data-name="葵" data-emoji="🌿" data-role="寄り添い参謀" data-prompt="あなたは「寄り添い参謀・葵」。感情を受け止め、共感してから提案する温かい参謀。社長の悩みの背景にある本音を引き出し、無理のない方向性を一緒に考える。">
+        <span class="sanbo-emoji">🌿</span>
+        <div class="sanbo-name">寄り添い参謀・葵</div>
+        <div class="sanbo-role">優しい伴走派</div>
+        <div class="sanbo-desc">感情を受け止めてから提案する。社長の本音を丁寧に引き出す。</div>
+        <span class="sanbo-tag"># 気持ちに寄り添う</span>
+      </div>
+      <div class="sanbo-card" onclick="selectSanbo(this, '玲')" data-name="玲" data-emoji="📊" data-role="分析参謀" data-prompt="あなたは「分析参謀・玲」。数字・データ・根拠を重視し、比較と論理で判断を助ける参謀。感情論を排し、客観的な視点から最適解を導く。">
+        <span class="sanbo-emoji">📊</span>
+        <div class="sanbo-name">分析参謀・玲</div>
+        <div class="sanbo-role">データ重視派</div>
+        <div class="sanbo-desc">数字と根拠で判断する。比較と論理で最適解を導く。</div>
+        <span class="sanbo-tag"># 論理で整理</span>
+      </div>
+      <div class="sanbo-card" onclick="selectSanbo(this, '隼')" data-name="隼" data-emoji="🦅" data-role="マーケ参謀" data-prompt="あなたは「市場参謀・隼」。顧客視点・競合分析・集客戦略を得意とするマーケ特化の参謀。市場の動きを読み、社長のビジネスが選ばれる理由を一緒に作る。">
+        <span class="sanbo-emoji">🦅</span>
+        <div class="sanbo-name">市場参謀・隼</div>
+        <div class="sanbo-role">マーケ特化派</div>
+        <div class="sanbo-desc">顧客・競合・集客の視点で考える。「選ばれる理由」を作る。</div>
+        <span class="sanbo-tag"># 市場で勝つ</span>
+      </div>
+      <div class="sanbo-card" onclick="selectSanbo(this, '竜')" data-name="竜" data-emoji="🐉" data-role="直感参謀" data-prompt="あなたは「野生の参謀・竜」。直感と経験則で本音を言う型破りな参謀。理屈よりも「腹の底」から感じることを大切にし、社長の直感を信じる方向で背中を押す。">
+        <span class="sanbo-emoji">🐉</span>
+        <div class="sanbo-name">野生の参謀・竜</div>
+        <div class="sanbo-role">直感重視派</div>
+        <div class="sanbo-desc">直感と経験則で本音を言う。腹の底から感じることを大切にする。</div>
+        <span class="sanbo-tag"># 直感で突破</span>
+      </div>
+      <div class="sanbo-card" onclick="selectSanbo(this, '慶')" data-name="慶" data-emoji="💰" data-role="財務参謀" data-prompt="あなたは「財務参謀・慶」。売上・コスト・利益・キャッシュフローの視点で経営を見る参謀。難しい財務用語は使わず、社長が今すぐ取るべきお金の行動を具体的に示す。">
+        <span class="sanbo-emoji">💰</span>
+        <div class="sanbo-name">財務参謀・慶</div>
+        <div class="sanbo-role">お金と収益の番人</div>
+        <div class="sanbo-desc">売上・コスト・利益を現実的に見る。お金の動きから正解を導く。</div>
+        <span class="sanbo-tag"># 収益で判断</span>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-20" id="btn1" onclick="goStep2()" disabled>この参謀に相談する →</button>
+  </div>
+
+  <!-- STEP2: モード選択 -->
+  <div class="section" id="step2">
+    <div class="section-label">STEP 02 — 相談モード</div>
+    <h2 class="section-title">どんな相談をしますか？</h2>
+    <p class="section-desc">今の状況に合ったモードを選んでください。</p>
+    <div class="mode-list">
+      <div class="mode-card" onclick="selectMode(this, 'decide')" data-mode="decide" data-prompt="社長が「やるべきか・やめるべきか」という決断に迷っています。参謀として、まず深掘りの質問を1つだけしてください。">
+        <div class="mode-icon">⚖️</div>
+        <div>
+          <div class="mode-title">決断サポート</div>
+          <div class="mode-desc">「やる・やらない」を一緒に整理する</div>
+          <div class="mode-examples">例：新事業参入、設備投資、値上げ、撤退判断</div>
+        </div>
+      </div>
+      <div class="mode-card" onclick="selectMode(this, 'problem')" data-mode="problem" data-prompt="社長が経営の問題を相談しています。「何が本当の問題か」を掘り下げるために、参謀として深掘りの質問を1つだけしてください。">
+        <div class="mode-icon">🔍</div>
+        <div>
+          <div class="mode-title">問題整理</div>
+          <div class="mode-desc">「何が本当の問題か」を掘り下げる</div>
+          <div class="mode-examples">例：売上が落ちた、スタッフが辞めた、集客が止まった</div>
+        </div>
+      </div>
+      <div class="mode-card" onclick="selectMode(this, 'idea')" data-mode="idea" data-prompt="社長が新しいアイデアを持ってきました。参謀として、そのアイデアの可能性と課題を見極めるための深掘り質問を1つだけしてください。">
+        <div class="mode-icon">💡</div>
+        <div>
+          <div class="mode-title">アイデア検証</div>
+          <div class="mode-desc">「このアイデア、どう思う？」を参謀に問いかける</div>
+          <div class="mode-examples">例：新サービス案、SNS施策、コラボ企画、価格変更</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep1()">← 戻る</button>
+      <button class="btn btn-primary" id="btn2" onclick="goStep3()" disabled style="flex:1">このモードで進む →</button>
+    </div>
+  </div>
+
+  <!-- STEP3: 相談内容入力 -->
+  <div class="section" id="step3">
+    <div class="section-label">STEP 03 — 相談内容</div>
+    <h2 class="section-title">参謀に相談する内容を入力してください</h2>
+    <p class="section-desc">思ったことをそのまま書いてください。まとまっていなくても大丈夫です。</p>
+
+    <div id="selectedSummary" class="selected-summary"></div>
+
+    <div class="input-block">
+      <label>相談内容（自由記述）</label>
+      <textarea id="consultInput" placeholder="例：来年から新しいサービスを始めようと思っているのですが、今の事業との相乗効果があるか不安で…" rows="5"></textarea>
+      <div class="suggest-list" id="suggestList"></div>
+    </div>
+
+    <div class="error-box" id="errorBox">⚠️ Worker URLが設定されていません。画面上部に入力してください。</div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep2()">← 戻る</button>
+      <button class="btn btn-primary" onclick="submitConsult()" style="flex:1">参謀に相談する 🤝</button>
+    </div>
+  </div>
+
+  <!-- STEP4: 深掘り質問 -->
+  <div class="section" id="step4">
+    <div class="section-label">STEP 04 — 深掘り</div>
+    <h2 class="section-title">参謀からの質問</h2>
+    <p class="section-desc">参謀が一つ質問します。正直に答えてください。</p>
+
+    <div class="sanbo-response" id="questionBox">
+      <div class="sanbo-speaker">
+        <span class="sanbo-speaker-icon" id="q-icon"></span>
+        <div>
+          <div class="sanbo-speaker-name" id="q-name"></div>
+          <div class="sanbo-speaker-role" id="q-role"></div>
+        </div>
+      </div>
+      <div class="sanbo-text" id="questionText"></div>
+    </div>
+
+    <div class="input-block">
+      <label>あなたの答え</label>
+      <textarea id="answerInput" placeholder="正直な気持ちを教えてください…" rows="4"></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitAnswer()">答えを伝えて、結論をもらう →</button>
+  </div>
+
+  <!-- STEP5: 最終結論 -->
+  <div class="section" id="step5">
+    <div class="section-label">STEP 05 — 結論</div>
+    <h2 class="section-title">参謀からの最終アドバイス</h2>
+
+    <div class="sanbo-response" id="adviceBox">
+      <div class="sanbo-speaker">
+        <span class="sanbo-speaker-icon" id="a-icon"></span>
+        <div>
+          <div class="sanbo-speaker-name" id="a-name"></div>
+          <div class="sanbo-speaker-role" id="a-role"></div>
+        </div>
+      </div>
+      <div class="sanbo-text" id="adviceText"></div>
+    </div>
+
+    <div class="conclusion-box" id="conclusionBox" style="display:none">
+      <div class="conclusion-label">📋 本日の結論</div>
+      <div class="conclusion-text" id="conclusionText"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-copy" onclick="copyResult()">📋 結論をコピー</button>
+    </div>
+    <div class="btn-row mt-12">
+      <button class="btn btn-ghost" onclick="restart()">↩ 新しい相談を始める</button>
+    </div>
+  </div>
+
+  <!-- ローディング -->
+  <div class="section" id="stepLoading">
+    <div class="loading">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div id="loadingText">参謀が考えています…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// 状態管理
+const state = {
+  sanbo: null,
+  mode: null,
+  consult: '',
+  question: '',
+  answer: '',
+  advice: '',
+  conclusion: ''
+};
+
+// Worker URL（直接指定）
+const WORKER_URL = 'https://your-worker.workers.dev'; // ここを書き換えてください
+
+// 参謀選択
+function selectSanbo(el, name) {
+  document.querySelectorAll('.sanbo-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.sanbo = {
+    name: el.dataset.name,
+    emoji: el.dataset.emoji,
+    role: el.dataset.role,
+    prompt: el.dataset.prompt
+  };
+  document.getElementById('btn1').disabled = false;
+}
+
+// モード選択
+function selectMode(el, mode) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.mode = {
+    id: el.dataset.mode,
+    title: el.querySelector('.mode-title').textContent,
+    prompt: el.dataset.prompt
+  };
+  document.getElementById('btn2').disabled = false;
+}
+
+// プログレス更新
+function updateProgress(step) {
+  for (let i = 1; i <= 5; i++) {
+    const ps = document.getElementById(`ps${i}`);
+    const pl = document.getElementById(`pl${i}`);
+    ps.classList.remove('active', 'done');
+    if (pl) pl.classList.remove('done');
+    if (i < step) { ps.classList.add('done'); if (pl) pl.classList.add('done'); }
+    else if (i === step) ps.classList.add('active');
+  }
+}
+
+// セクション切替
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// STEP遷移
+function goStep1() { showSection('step1'); updateProgress(1); }
+function goStep2() { showSection('step2'); updateProgress(2); }
+function goStep3() {
+  showSection('step3');
+  updateProgress(3);
+  // 選択サマリー
+  const s = document.getElementById('selectedSummary');
+  s.innerHTML = `<div class="selected-item">${state.sanbo.emoji} 参謀：<span>${state.sanbo.role}・${state.sanbo.name}</span></div><div class="selected-item">📋 モード：<span>${state.mode.title}</span></div>`;
+  // 候補テキスト
+  const suggests = {
+    decide: ['新しいサービスを始めるべきか迷っています', '今の事業を縮小すべきか検討中です', '設備投資のタイミングを判断したい', '価格を上げようとしているが不安です'],
+    problem: ['最近、売上が伸び悩んでいます', '優秀なスタッフが辞めてしまいました', 'SNSを頑張っているのに集客できない', 'リピート客が減ってきた気がします'],
+    idea: ['新しいサービスラインを追加しようと思います', 'SNSでブランドを作ろうと考えています', '他社とコラボしたい', 'サブスクリプションを導入したい']
+  };
+  const sl = document.getElementById('suggestList');
+  sl.innerHTML = (suggests[state.mode.id] || []).map(t =>
+    `<button class="suggest-btn" onclick="setSuggest(this)">${t}</button>`
+  ).join('');
+}
+
+function setSuggest(el) {
+  document.getElementById('consultInput').value = el.textContent;
+}
+
+// 相談送信（深掘り質問フェーズ）
+async function submitConsult() {
+  const text = document.getElementById('consultInput').value.trim();
+  if (!text) return alert('相談内容を入力してください');
+  state.consult = text;
+  showSection('stepLoading');
+  document.getElementById('loadingText').textContent = `${state.sanbo.name}参謀が状況を把握しています…`;
+
+  const systemPrompt = `${state.sanbo.prompt}
+
+あなたは今、ひとり社長の「参謀室」にいます。
+相談モード：${state.mode.title}
+${state.mode.prompt}
+
+ルール：
+- 質問は必ず1つだけにすること
+- 100文字以内で簡潔に問いかけること
+- 参謀らしい個性ある言葉遣いで
+- 共感や前置きは短めに、質問を前面に出すこと`;
+
+  try {
+    const res = await callWorker(WORKER_URL, systemPrompt, `社長からの相談：\n${text}`);
+    state.question = res;
+    showStep4();
+  } catch (e) {
+    alert('エラーが発生しました: ' + e.message);
+    goStep3();
+  }
+}
+
+function showStep4() {
+  showSection('step4');
+  updateProgress(4);
+  document.getElementById('q-icon').textContent = state.sanbo.emoji;
+  document.getElementById('q-name').textContent = `${state.sanbo.role}・${state.sanbo.name}`;
+  document.getElementById('q-role').textContent = '深掘り質問';
+  document.getElementById('questionText').textContent = state.question;
+  document.getElementById('answerInput').value = '';
+}
+
+// 回答送信（最終アドバイスフェーズ）
+async function submitAnswer() {
+  const answer = document.getElementById('answerInput').value.trim();
+  if (!answer) return alert('答えを入力してください');
+  state.answer = answer;
+
+  showSection('stepLoading');
+  document.getElementById('loadingText').textContent = `${state.sanbo.name}参謀が最終判断を組み立てています…`;
+
+  const systemPrompt = `${state.sanbo.prompt}
+
+あなたは社長の相談に深く向き合った後、最終アドバイスを伝えます。
+
+構成：
+1. 社長の状況に対する参謀なりの見立て（2〜3文）
+2. 具体的なアドバイスまたは行動提案（2〜3点）
+3. 最後に一言、社長への言葉（1文）
+
+ルール：
+- 参謀の個性・口調を維持すること
+- 300〜400文字程度でまとめること
+- 最後に「─ 本日の結論：」として1〜2文で要約すること`;
+
+  const userMsg = `相談内容：${state.consult}\n\n参謀の質問：${state.question}\n\n社長の答え：${answer}`;
+
+  try {
+    const res = await callWorker(WORKER_URL, systemPrompt, userMsg);
+    state.advice = res;
+    // 結論部分を抽出
+    const match = res.match(/─\s*本日の結論[：:]\s*([\s\S]+)$/);
+    state.conclusion = match ? match[1].trim() : res.slice(-100);
+    showStep5();
+  } catch (e) {
+    alert('エラーが発生しました: ' + e.message);
+    showStep4();
+  }
+}
+
+function showStep5() {
+  showSection('step5');
+  updateProgress(5);
+  document.getElementById('a-icon').textContent = state.sanbo.emoji;
+  document.getElementById('a-name').textContent = `${state.sanbo.role}・${state.sanbo.name}`;
+  document.getElementById('a-role').textContent = '最終アドバイス';
+  document.getElementById('adviceText').textContent = state.advice;
+  if (state.conclusion) {
+    document.getElementById('conclusionBox').style.display = 'block';
+    document.getElementById('conclusionText').textContent = state.conclusion;
+  }
+}
+
+// コピー
+function copyResult() {
+  const text = `【ひとり社長の参謀室】\n参謀：${state.sanbo.role}・${state.sanbo.name}\nモード：${state.mode.title}\n\n【相談内容】\n${state.consult}\n\n【参謀のアドバイス】\n${state.advice}`;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('コピーしました！');
+  });
+}
+
+// リスタート
+function restart() {
+  state.sanbo = null; state.mode = null;
+  state.consult = ''; state.question = '';
+  state.answer = ''; state.advice = ''; state.conclusion = '';
+  document.querySelectorAll('.sanbo-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('btn1').disabled = true;
+  document.getElementById('btn2').disabled = true;
+  document.getElementById('consultInput').value = '';
+  document.getElementById('answerInput').value = '';
+  document.getElementById('conclusionBox').style.display = 'none';
+  goStep1();
+}
+
+// Cloudflare Workers API呼び出し
+async function callWorker(workerUrl, system, userMsg) {
+  const response = await fetch(workerUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-5',
+      max_tokens: 1024,
+      system: system,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (data.content && data.content[0]) return data.content[0].text;
+  if (data.error) throw new Error(data.error.message);
+  throw new Error('不明なエラー');
+}
+</script>
+</body>
+</html>
