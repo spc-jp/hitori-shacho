@@ -12,31 +12,29 @@
   :root {
     --blue: #225AD3;
     --blue-light: #0179E8;
-    --gold: #C9A84C;
-    --gold-light: #E8C96A;
-    --dark: #0D1117;
-    --dark2: #161B27;
-    --dark3: #1E2535;
-    --dark4: #252D40;
-    --text: #E8EAF0;
-    --text-dim: #8892A4;
-    --text-muted: #556070;
-    --border: rgba(255,255,255,0.06);
-    --border-gold: rgba(201,168,76,0.3);
+    --gold: #B8922A;
+    --gold-light: #D4A93A;
+    --dark: #2C3345;
+    --dark2: #f5f6f8;
+    --dark3: #eaedf2;
+    --dark4: #dde1ea;
+    --text: #1a2035;
+    --text-dim: #445068;
+    --text-muted: #8892A4;
+    --border: rgba(0,0,0,0.08);
+    --border-gold: rgba(184,146,42,0.3);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--dark);
+    background: #eef0f5;
     color: var(--text);
     font-family: 'Noto Sans JP', sans-serif;
     min-height: 100vh;
     background-image:
-      radial-gradient(ellipse at 20% 50%, rgba(34,90,211,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgba(1,121,232,0.05) 0%, transparent 50%),
-      repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.01) 80px, rgba(255,255,255,0.01) 81px),
-      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.01) 80px, rgba(255,255,255,0.01) 81px);
+      radial-gradient(ellipse at 20% 50%, rgba(34,90,211,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(1,121,232,0.04) 0%, transparent 50%);
   }
 
   .container {
@@ -63,13 +61,13 @@
     font-size: 40px;
     display: block;
     margin-bottom: 12px;
-    filter: drop-shadow(0 0 20px rgba(201,168,76,0.4));
+    filter: drop-shadow(0 0 12px rgba(184,146,42,0.3));
   }
   .header h1 {
     font-family: 'Noto Serif JP', serif;
     font-size: 26px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--dark);
     letter-spacing: 0.08em;
     line-height: 1.4;
   }
@@ -78,7 +76,7 @@
     color: var(--gold);
     letter-spacing: 0.15em;
     margin-top: 8px;
-    font-weight: 300;
+    font-weight: 500;
   }
 
   /* セクション */
@@ -139,7 +137,7 @@
   }
 
   .sanbo-card {
-    background: var(--dark2);
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 20px;
@@ -147,6 +145,7 @@
     transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
   .sanbo-card::before {
     content: '';
@@ -158,14 +157,16 @@
     transition: opacity 0.25s;
   }
   .sanbo-card:hover {
-    border-color: rgba(201,168,76,0.3);
-    background: var(--dark3);
+    border-color: rgba(184,146,42,0.4);
+    background: #fffef8;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
   }
   .sanbo-card:hover::before { opacity: 1; }
   .sanbo-card.selected {
     border-color: var(--gold);
-    background: var(--dark3);
+    background: #fffef8;
+    box-shadow: 0 4px 16px rgba(184,146,42,0.15);
   }
   .sanbo-card.selected::before { opacity: 1; }
 
@@ -207,7 +208,7 @@
     margin-bottom: 12px;
   }
   .mode-card {
-    background: var(--dark2);
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 20px 24px;
@@ -216,10 +217,12 @@
     display: flex;
     align-items: flex-start;
     gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   .mode-card:hover, .mode-card.selected {
-    border-color: rgba(34,90,211,0.5);
-    background: var(--dark3);
+    border-color: rgba(34,90,211,0.4);
+    background: #f8faff;
+    box-shadow: 0 4px 16px rgba(34,90,211,0.1);
   }
   .mode-card.selected { border-color: var(--blue); }
   .mode-icon {
@@ -247,11 +250,12 @@
 
   /* テキストエリア */
   .input-block {
-    background: var(--dark2);
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   .input-block label {
     font-size: 12px;
@@ -262,8 +266,8 @@
   }
   textarea {
     width: 100%;
-    background: var(--dark3);
-    border: 1px solid var(--border);
+    background: #f8f9fb;
+    border: 1px solid rgba(0,0,0,0.1);
     border-radius: 8px;
     color: var(--text);
     font-family: 'Noto Sans JP', sans-serif;
@@ -275,7 +279,7 @@
     transition: border-color 0.2s;
     outline: none;
   }
-  textarea:focus { border-color: rgba(34,90,211,0.5); }
+  textarea:focus { border-color: rgba(34,90,211,0.4); }
   textarea::placeholder { color: var(--text-muted); }
 
   /* 候補ボタン */
@@ -304,12 +308,13 @@
 
   /* 参謀の返答エリア */
   .sanbo-response {
-    background: var(--dark2);
+    background: #ffffff;
     border: 1px solid var(--border-gold);
     border-radius: 12px;
     padding: 28px;
     margin-bottom: 20px;
     position: relative;
+    box-shadow: 0 2px 12px rgba(184,146,42,0.08);
   }
   .sanbo-response::before {
     content: '';
@@ -353,12 +358,13 @@
 
   /* 結論エリア */
   .conclusion-box {
-    background: linear-gradient(135deg, rgba(34,90,211,0.1), rgba(201,168,76,0.05));
-    border: 1px solid rgba(201,168,76,0.4);
+    background: linear-gradient(135deg, rgba(34,90,211,0.05), rgba(184,146,42,0.03));
+    border: 1px solid rgba(184,146,42,0.35);
     border-radius: 12px;
     padding: 28px;
     margin-bottom: 20px;
     position: relative;
+    box-shadow: 0 2px 12px rgba(184,146,42,0.08);
   }
   .conclusion-box::before {
     content: '';
@@ -424,8 +430,8 @@
     box-shadow: 0 6px 24px rgba(201,168,76,0.3);
   }
   .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.12);
     color: var(--text-dim);
     font-size: 13px;
   }
@@ -434,13 +440,30 @@
     color: var(--text);
   }
   .btn-copy {
-    background: var(--dark3);
-    border: 1px solid var(--border);
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.12);
     color: var(--text-dim);
     font-size: 13px;
     width: 100%;
   }
   .btn-copy:hover { border-color: var(--gold); color: var(--gold); }
+
+  .suggest-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: #f0f2f7;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .suggest-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: #f0f4ff;
+  }
 
   .btn-row {
     display: flex;
@@ -459,8 +482,8 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--dark2);
+    border: 1px solid rgba(0,0,0,0.15);
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -468,6 +491,7 @@
     color: var(--text-muted);
     transition: all 0.3s;
     flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }
   .progress-step.done {
     background: var(--blue);
@@ -491,8 +515,7 @@
     padding: 40px;
     color: var(--text-dim);
     font-size: 13px;
-  }
-  .loading-dots {
+  }  .loading-dots {
     display: inline-flex;
     gap: 6px;
     margin-bottom: 12px;
@@ -515,7 +538,7 @@
 
   /* 選択済み表示 */
   .selected-summary {
-    background: var(--dark2);
+    background: #f8f9fb;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 12px 16px;
@@ -760,7 +783,7 @@ const state = {
 };
 
 // Worker URL（直接指定）
-const WORKER_URL = 'https://hitori-shacho.yymmatsu.workers.dev'; // ここを書き換えてください
+const WORKER_URL = 'https://your-worker.workers.dev'; // ここを書き換えてください
 
 // 参謀選択
 function selectSanbo(el, name) {
@@ -866,7 +889,7 @@ function showStep4() {
   document.getElementById('q-icon').textContent = state.sanbo.emoji;
   document.getElementById('q-name').textContent = `${state.sanbo.role}・${state.sanbo.name}`;
   document.getElementById('q-role').textContent = '深掘り質問';
-  document.getElementById('questionText').textContent = state.question;
+  document.getElementById('questionText').innerHTML = formatText(state.question);
   document.getElementById('answerInput').value = '';
 }
 
@@ -898,9 +921,9 @@ async function submitAnswer() {
   try {
     const res = await callWorker(WORKER_URL, systemPrompt, userMsg);
     state.advice = res;
-    // 結論部分を抽出
-    const match = res.match(/─\s*本日の結論[：:]\s*([\s\S]+)$/);
-    state.conclusion = match ? match[1].trim() : res.slice(-100);
+    // 結論部分を抽出（「─ 本日の結論：」以降を取得）
+    const match = res.match(/─\s*\*{0,2}本日の結論\*{0,2}[：:]\s*\*{0,2}([\s\S]+?)(\*{0,2})$/);
+    state.conclusion = match ? match[1].trim() : '';
     showStep5();
   } catch (e) {
     alert('エラーが発生しました: ' + e.message);
@@ -914,10 +937,10 @@ function showStep5() {
   document.getElementById('a-icon').textContent = state.sanbo.emoji;
   document.getElementById('a-name').textContent = `${state.sanbo.role}・${state.sanbo.name}`;
   document.getElementById('a-role').textContent = '最終アドバイス';
-  document.getElementById('adviceText').textContent = state.advice;
+  document.getElementById('adviceText').innerHTML = formatText(state.advice);
   if (state.conclusion) {
     document.getElementById('conclusionBox').style.display = 'block';
-    document.getElementById('conclusionText').textContent = state.conclusion;
+    document.getElementById('conclusionText').innerHTML = formatText(state.conclusion);
   }
 }
 
@@ -942,6 +965,13 @@ function restart() {
   document.getElementById('answerInput').value = '';
   document.getElementById('conclusionBox').style.display = 'none';
   goStep1();
+}
+
+// マークダウン記号をHTMLに変換
+function formatText(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
 
 // Cloudflare Workers API呼び出し
