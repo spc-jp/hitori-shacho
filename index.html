@@ -568,6 +568,151 @@
     display: none;
   }
 
+  /* ヘルプボタン */
+  .help-btn {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .help-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  /* モーダル */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  .modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    padding: 32px 24px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-content h3 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 20px;
+    margin-bottom: 24px;
+    text-align: center;
+    color: var(--dark);
+  }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section h4 {
+    font-size: 14px;
+    color: var(--blue);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .modal-section p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .modal-section ul { list-style: none; padding: 0; }
+  .modal-section li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    padding-left: 1.2em;
+    position: relative;
+  }
+  .modal-section li::before {
+    content: '•';
+    color: var(--gold);
+    position: absolute;
+    left: 0;
+    font-size: 16px;
+  }
+
+  /* プログレス上書き */
+  .progress { margin-bottom: 44px; } /* ラベルの分マージンを追加 */
+  .progress-step { position: relative; } /* ラベル絶対配置のため追加 */
+  .progress-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    font-size: 10px;
+    white-space: nowrap;
+    color: var(--text-muted);
+    transition: all 0.3s;
+  }
+  .progress-step.done .progress-label { color: var(--blue); }
+  .progress-step.active .progress-label { color: var(--gold); font-weight: bold; }
+
+  /* トースト通知（確認表示） */
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(50px);
+    background: var(--dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
   .mt-12 { margin-top: 12px; }
   .mt-20 { margin-top: 20px; }
 </style>
@@ -577,6 +722,7 @@
 
   <!-- ヘッダー -->
   <div class="header">
+    <button class="help-btn" onclick="openHelp()">❓ 使い方</button>
     <span class="header-icon">🏯</span>
     <h1>ひとり社長の参謀室</h1>
     <p class="subtitle">AIが「やるべきか、やめるべきか」を一緒に考える</p>
@@ -584,15 +730,15 @@
 
   <!-- プログレス -->
   <div class="progress" id="progressBar">
-    <div class="progress-step active" id="ps1">1</div>
+    <div class="progress-step active" id="ps1">1<div class="progress-label">参謀選択</div></div>
     <div class="progress-line" id="pl1"></div>
-    <div class="progress-step" id="ps2">2</div>
+    <div class="progress-step" id="ps2">2<div class="progress-label">モード選択</div></div>
     <div class="progress-line" id="pl2"></div>
-    <div class="progress-step" id="ps3">3</div>
+    <div class="progress-step" id="ps3">3<div class="progress-label">相談入力</div></div>
     <div class="progress-line" id="pl3"></div>
-    <div class="progress-step" id="ps4">4</div>
+    <div class="progress-step" id="ps4">4<div class="progress-label">深掘り質問</div></div>
     <div class="progress-line" id="pl4"></div>
-    <div class="progress-step" id="ps5">5</div>
+    <div class="progress-step" id="ps5">5<div class="progress-label">最終結論</div></div>
   </div>
 
   <!-- STEP1: 参謀選択 -->
@@ -698,8 +844,6 @@
       <div class="suggest-list" id="suggestList"></div>
     </div>
 
-    <div class="error-box" id="errorBox">⚠️ Worker URLが設定されていません。画面上部に入力してください。</div>
-
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="goStep2()">← 戻る</button>
       <button class="btn btn-primary" onclick="submitConsult()" style="flex:1">参謀に相談する 🤝</button>
@@ -770,6 +914,33 @@
 
 </div>
 
+<!-- 使い方モーダル -->
+<div id="helpModal" class="modal-overlay" style="display:none" onclick="if(event.target===this) closeHelp()">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeHelp()">×</button>
+    <h3>このアプリについて</h3>
+    
+    <div class="modal-section">
+      <h4>■ 目的</h4>
+      <p>AIが「参謀」となり、ひとり社長が抱える「やるべきか、やめるべきか」といった経営の悩みを整理し、決断をサポートします。</p>
+    </div>
+    
+    <div class="modal-section">
+      <h4>■ 使い方</h4>
+      <ul>
+        <li><strong>STEP 1（参謀選択）：</strong> 今の課題や気分に合った参謀（厳しい、優しい、論理的など）を1名選びます。</li>
+        <li><strong>STEP 2（モード選択）：</strong> 「決断」「問題整理」「アイデア検証」の中から、相談の方向性を選びます。</li>
+        <li><strong>STEP 3（相談入力）：</strong> 悩んでいることや状況をそのまま書き込んでください。まとまっていなくても大丈夫です。</li>
+        <li><strong>STEP 4（深掘り質問）：</strong> 参謀から、本質を突く「1つの質問」が投げかけられます。あなたの素直な気持ちを答えてください。</li>
+        <li><strong>STEP 5（最終結論）：</strong> あなたの答えを踏まえて、参謀が具体的なアドバイスと最終的な結論を提示します。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- トースト通知用要素 -->
+<div id="toast" class="toast"></div>
+
 <script>
 // 状態管理
 const state = {
@@ -782,8 +953,8 @@ const state = {
   conclusion: ''
 };
 
-// Worker URL（直接指定）
-const WORKER_URL = 'https://your-worker.workers.dev'; // ここを書き換えてください
+// APIキー（実行環境で自動設定されます）
+const apiKey = "";
 
 // 参謀選択
 function selectSanbo(el, name) {
@@ -867,14 +1038,14 @@ async function submitConsult() {
 相談モード：${state.mode.title}
 ${state.mode.prompt}
 
-ルール：
+  ルール：
 - 質問は必ず1つだけにすること
 - 100文字以内で簡潔に問いかけること
 - 参謀らしい個性ある言葉遣いで
 - 共感や前置きは短めに、質問を前面に出すこと`;
 
   try {
-    const res = await callWorker(WORKER_URL, systemPrompt, `社長からの相談：\n${text}`);
+    const res = await callGeminiAPI(systemPrompt, `社長からの相談：\n${text}`);
     state.question = res;
     showStep4();
   } catch (e) {
@@ -911,7 +1082,7 @@ async function submitAnswer() {
 2. 具体的なアドバイスまたは行動提案（2〜3点）
 3. 最後に一言、社長への言葉（1文）
 
-ルール：
+  ルール：
 - 参謀の個性・口調を維持すること
 - 300〜400文字程度でまとめること
 - 最後に「─ 本日の結論：」として1〜2文で要約すること`;
@@ -919,7 +1090,7 @@ async function submitAnswer() {
   const userMsg = `相談内容：${state.consult}\n\n参謀の質問：${state.question}\n\n社長の答え：${answer}`;
 
   try {
-    const res = await callWorker(WORKER_URL, systemPrompt, userMsg);
+    const res = await callGeminiAPI(systemPrompt, userMsg);
     state.advice = res;
     // 結論部分を抽出（「─ 本日の結論：」以降を取得）
     const match = res.match(/─\s*\*{0,2}本日の結論\*{0,2}[：:]\s*\*{0,2}([\s\S]+?)(\*{0,2})$/);
@@ -947,9 +1118,41 @@ function showStep5() {
 // コピー
 function copyResult() {
   const text = `【ひとり社長の参謀室】\n参謀：${state.sanbo.role}・${state.sanbo.name}\nモード：${state.mode.title}\n\n【相談内容】\n${state.consult}\n\n【参謀のアドバイス】\n${state.advice}`;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('コピーしました！');
-  });
+  
+  // Fallback for iFrame clipboard restrictions
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  
+  // Prevent scrolling to bottom when appending to body
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+      document.execCommand('copy');
+      showToast('📋 クリップボードにコピーしました！');
+  } catch (error) {
+      console.error('Failed to copy text: ', error);
+      showToast('⚠️ コピーに失敗しました。');
+  } finally {
+      document.body.removeChild(textArea);
+  }
+}
+
+// 確認表示（トースト通知）を出す関数
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  
+  // 3秒後に非表示にする
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
 }
 
 // リスタート
@@ -974,23 +1177,46 @@ function formatText(text) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
 
-// Cloudflare Workers API呼び出し
-async function callWorker(workerUrl, system, userMsg) {
-  const response = await fetch(workerUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-opus-4-5',
-      max_tokens: 1024,
-      system: system,
-      messages: [{ role: 'user', content: userMsg }]
-    })
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const data = await response.json();
-  if (data.content && data.content[0]) return data.content[0].text;
-  if (data.error) throw new Error(data.error.message);
-  throw new Error('不明なエラー');
+// AI API呼び出し (Gemini)
+async function callGeminiAPI(systemPrompt, userMsg) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const payload = {
+    contents: [{ parts: [{ text: userMsg }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] }
+  };
+
+  const delays = [1000, 2000, 4000, 8000, 16000];
+  let lastError = null;
+
+  for (let i = 0; i <= delays.length; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+        return data.candidates[0].content.parts[0].text;
+      }
+      throw new Error('APIのレスポンス形式が予期しないものでした');
+    } catch (e) {
+      lastError = e;
+      if (i < delays.length) {
+        await new Promise(resolve => setTimeout(resolve, delays[i]));
+      }
+    }
+  }
+  throw lastError;
+}
+
+// ヘルプモーダルの開閉
+function openHelp() {
+  document.getElementById('helpModal').style.display = 'flex';
+}
+function closeHelp() {
+  document.getElementById('helpModal').style.display = 'none';
 }
 </script>
 </body>
