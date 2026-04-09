@@ -46,12 +46,66 @@
     background-image:
       radial-gradient(ellipse at 20% 50%, rgba(34,90,211,0.05) 0%, transparent 60%),
       radial-gradient(ellipse at 80% 20%, rgba(1,121,232,0.04) 0%, transparent 50%);
+    transition: padding-top 0.3s;
   }
 
   .container {
     max-width: 760px;
     margin: 0 auto;
     padding: 0 20px 80px;
+  }
+
+  /* トライアルバナー */
+  .trial-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 48px;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    padding: 0 16px;
+  }
+  .trial-banner.gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #ffffff;
+  }
+  .trial-banner.red {
+    background: linear-gradient(135deg, #e53e3e, #f56565);
+    color: #ffffff;
+  }
+  .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+  .trial-banner.red .banner-content:hover { opacity: 0.9; }
+  .unlock-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .unlock-btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  @media (max-width: 500px) {
+    .trial-banner { font-size: 11px; gap: 8px; }
+    .unlock-btn { padding: 4px 8px; font-size: 10px; }
   }
 
   /* ヘッダー */
@@ -603,31 +657,31 @@
     color: var(--blue);
   }
 
-  /* モーダル */
+  /* モーダル共通 */
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 1000;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
   }
   .modal-content {
     background: #ffffff;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 100%;
     max-width: 500px;
     padding: 32px 24px;
     position: relative;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    animation: slideUp 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .modal-close {
     position: absolute;
@@ -713,7 +767,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    z-index: 2000;
+    z-index: 3000;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -729,6 +783,15 @@
 </style>
 </head>
 <body>
+
+<!-- トライアル状態表示バナー -->
+<div id="trialBanner" class="trial-banner" style="display:none;">
+  <div class="banner-content" id="bannerContent">
+    <span id="bannerText"></span>
+  </div>
+  <button id="unlockBtn" class="unlock-btn" onclick="event.stopPropagation(); openUnlockModal()">🔑 制限解除</button>
+</div>
+
 <div class="container">
 
   <!-- ヘッダー -->
@@ -949,10 +1012,37 @@
   </div>
 </div>
 
+<!-- パスワード解除（有料版）モーダル -->
+<div id="unlockModal" class="modal-overlay" style="display:none" onclick="if(event.target===this) closeUnlockModal()">
+  <div class="modal-content" style="max-width: 400px; text-align: center;">
+    <button class="modal-close" onclick="closeUnlockModal()">×</button>
+    <h3>プレミアム版のロック解除</h3>
+    <p style="font-size:13px; color:var(--text-dim); margin-bottom:20px;">
+      Stripeでのご購入後、サンクスメールに記載されているパスワードを入力してください。
+    </p>
+    <input type="password" id="passwordInput" placeholder="パスワードを入力" style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:16px; text-align:center; margin-bottom:12px;">
+    <div id="unlockError" style="color:#e53e3e; font-size:12px; margin-bottom:12px; display:none;">パスワードが間違っています</div>
+    <button class="btn btn-primary" onclick="submitPassword()" style="margin-bottom:20px;">ロックを解除する 🔓</button>
+    
+    <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:10px;">
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">まだご購入されていない方</p>
+      <button class="btn btn-gold" onclick="window.open(STRIPE_URL, '_blank')">💳 Stripeで決済する</button>
+    </div>
+  </div>
+</div>
+
 <!-- トースト通知用要素 -->
 <div id="toast" class="toast"></div>
 
 <script>
+// ==========================================
+// ★ 有料化・制限解除の設定 ★
+// ==========================================
+const STRIPE_URL = "https://buy.stripe.com/eVq3cudL4dnv4KH8EYcV20v"; // ここにStripeの決済リンクURLを入れてください
+const SECRET_PASSWORD = "sanbo"; // サンクスメールでお客様に案内するパスワードを設定してください
+const MAX_TRIAL = 3; // 無料体験の回数
+// ==========================================
+
 // 状態管理
 const state = {
   sanbo: null,
@@ -966,6 +1056,70 @@ const state = {
 
 // APIキー（実行環境で自動設定されます）
 const apiKey = "";
+
+// ロード時の初期化（トライアル状態の確認）
+window.onload = () => {
+  initTrial();
+};
+
+// --- トライアル・制限解除の処理 ---
+function initTrial() {
+  const isUnlocked = localStorage.getItem('sanbo_unlocked') === 'true';
+  let count = parseInt(localStorage.getItem('sanbo_usage_count') || '0', 10);
+  
+  const banner = document.getElementById('trialBanner');
+  const bannerText = document.getElementById('bannerText');
+  const bannerContent = document.getElementById('bannerContent');
+
+  if (isUnlocked) {
+    banner.style.display = 'none';
+    document.body.style.paddingTop = '0';
+    return;
+  }
+
+  banner.style.display = 'flex';
+  document.body.style.paddingTop = '48px'; // バナーの高さ分だけ全体を下げる
+
+  if (count === 0) {
+    banner.className = 'trial-banner gold';
+    bannerText.innerHTML = '🎁 今なら3回まで無料でお試しいただけます（登録不要）';
+    bannerContent.onclick = null;
+    bannerContent.style.cursor = 'default';
+  } else if (count < MAX_TRIAL) {
+    banner.className = 'trial-banner gold';
+    bannerText.innerHTML = `🎁 無料体験 残り${MAX_TRIAL - count}回（全3回）`;
+    bannerContent.onclick = null;
+    bannerContent.style.cursor = 'default';
+  } else {
+    banner.className = 'trial-banner red';
+    bannerText.innerHTML = '⚠️ 無料体験が終了しました ご購入はこちら→';
+    bannerContent.onclick = () => window.open(STRIPE_URL, '_blank');
+    bannerContent.style.cursor = 'pointer';
+  }
+}
+
+function openUnlockModal() {
+  document.getElementById('unlockModal').style.display = 'flex';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('unlockError').style.display = 'none';
+}
+
+function closeUnlockModal() {
+  document.getElementById('unlockModal').style.display = 'none';
+}
+
+function submitPassword() {
+  const input = document.getElementById('passwordInput').value;
+  if (input === SECRET_PASSWORD) {
+    localStorage.setItem('sanbo_unlocked', 'true');
+    closeUnlockModal();
+    initTrial();
+    showToast('🔓 プレミアム版のロックが解除されました！');
+  } else {
+    document.getElementById('unlockError').style.display = 'block';
+  }
+}
+// ------------------------------------
 
 // 参謀選択
 function selectSanbo(el, name) {
@@ -1037,6 +1191,15 @@ function setSuggest(el) {
 
 // 相談送信（深掘り質問フェーズ）
 async function submitConsult() {
+  // ★ ここで無料体験の回数をチェックします
+  const isUnlocked = localStorage.getItem('sanbo_unlocked') === 'true';
+  let count = parseInt(localStorage.getItem('sanbo_usage_count') || '0', 10);
+  
+  if (!isUnlocked && count >= MAX_TRIAL) {
+    openUnlockModal(); // 上限の場合はパスワード（または購入）モーダルを表示
+    return;
+  }
+
   const text = document.getElementById('consultInput').value.trim();
   if (!text) return alert('相談内容を入力してください');
   state.consult = text;
@@ -1057,6 +1220,14 @@ ${state.mode.prompt}
 
   try {
     const res = await callGeminiAPI(systemPrompt, `社長からの相談：\n${text}`);
+    
+    // ★ 相談が正常に送れたら、ここで1回分としてカウントアップする
+    if (!isUnlocked) {
+      count++;
+      localStorage.setItem('sanbo_usage_count', count.toString());
+      initTrial(); // バナー表示を更新
+    }
+
     state.question = res;
     showStep4();
   } catch (e) {
